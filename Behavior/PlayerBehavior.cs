@@ -1,12 +1,23 @@
+#region                  --[FRAMEWORKS]--
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Windows;
+#endregion
 
 public class PlayerBehavior : MonoBehaviour
 {
+    #region Name of player
+    [SerializeField] [Tooltip("Имя вашего игрока")] private string playerName = "АЛЕКСАНДР";
+    #endregion
+
+    #region Mechanics
+    [HideInInspector]  public Player player;
+    [HideInInspector]  public Weapon weapon;
+    #endregion
+
     #region SPEEDS and RANGES
     [Header(" ПЕРЕДВИЖЕНИЕ ИГРОКА")]
     [Tooltip("Скорость хотьбы")][SerializeField] private float speedWalk = 4f;
@@ -42,8 +53,7 @@ public class PlayerBehavior : MonoBehaviour
     #endregion
 
     #region INPUT "AXIS"
-    private float horizontal;
-    private float vertical;
+    private float horizontal, vertical;
     #endregion
 
     /// <summary>
@@ -51,55 +61,10 @@ public class PlayerBehavior : MonoBehaviour
     /// </summary>
 
     #region UNITY "METHODS"
-    void Start()
-    {
-        Initializer();
-    }
-
-   
-
-    void Update()
-    {
-        Input(MOBILE);
-       
-
-
-
-    }
-    private void LateUpdate()
-    {
-        PlayerRotateToCameraForward(PlayerRotateToCamera);
-    }
-
-
-
-    private void FixedUpdate()
-    {
-        PlayerMoveForward();
-
-        PlayerRotate();
-
-        Jump(IsGrounded());
-
-
-    }
-    #endregion
-
-
-    #region INITIALIZER [for start game]
-    private void Initializer()
-    {
-        if (MOBILE) { PlayerRotateToCamera = true; }
-        cameraTransform = GameObject.Find("CameraBehavior");
-        rbPlayer = GetComponent<Rigidbody>();
-        playerCollider = GetComponent<CapsuleCollider>();
-        animationPlayer = GetComponent<Animator>();
-
-        //нужно вынести в метод
-        animationPlayer.SetBool("Idle", true);
-        animationPlayer.SetBool("Walk",false);
-
-    }
+    void Start(){    Initializer();      }
+    void Update(){   Input(MOBILE);      }
+    private void LateUpdate() { PlayerRotateToCameraForward(PlayerRotateToCamera);  }
+    private void FixedUpdate(){ PlayerMoveForward(); PlayerRotate(); Jump(IsGrounded()); }
     #endregion
 
     #region INPUT (AXIS)/ PLATFORMS
@@ -130,7 +95,6 @@ public class PlayerBehavior : MonoBehaviour
     }
     #endregion
 
-
     #region MOVE (RIGIDBODY)
 
     #region FORWARD
@@ -143,11 +107,10 @@ public class PlayerBehavior : MonoBehaviour
         {
             animationPlayer.SetBool("Idle", false);
             if (speed == speedWalk) { animationPlayer.SetBool("Walk", true); animationPlayer.SetBool("Run", false); }
-            else {
-                cameraTransform.transform.LookAt(this.transform);
-                animationPlayer.SetBool("Run", true); animationPlayer.SetBool("Walk", false); }
-        }
-        else if (vertical == 0) { animationPlayer.SetBool("Idle", true); animationPlayer.SetBool("Walk", false); animationPlayer.SetBool("Run", false); }
+            else { animationPlayer.SetBool("Run", true); animationPlayer.SetBool("Walk", false); }}
+
+        else if (vertical == 0) 
+        { animationPlayer.SetBool("Idle", true); animationPlayer.SetBool("Walk", false); animationPlayer.SetBool("Run", false); }
 
         #endregion
 
@@ -190,8 +153,6 @@ public class PlayerBehavior : MonoBehaviour
 
     #endregion
 
-
-
     #region CAMERA AND PLAYER "AUTO ROTATION"
 
     /// <summary>
@@ -212,7 +173,6 @@ public class PlayerBehavior : MonoBehaviour
     }
     #endregion
 
-
     #region "Check "GROUND" (IsGrounded)
     /// <summary>
     /// метод вернет true, если игрок стоит на заданном слое
@@ -227,5 +187,24 @@ public class PlayerBehavior : MonoBehaviour
     }
     #endregion
 
+    #region INITIALIZER [for start game]
+    private void Initializer()
+    {
+        if (MOBILE) { PlayerRotateToCamera = true; }
+        cameraTransform = GameObject.Find("CameraBehavior");
+        rbPlayer = GetComponent<Rigidbody>();
+        playerCollider = GetComponent<CapsuleCollider>();
+        animationPlayer = GetComponent<Animator>();
 
+
+        animationPlayer.SetBool("Idle", true);
+        animationPlayer.SetBool("Walk", false);
+
+        #region Mechanics
+        //нужно перенести в AWAKE
+        weapon = new Sword();
+        player = new Player(playerName, 100f, 100f, weapon);
+        #endregion
+    }
+    #endregion
 }
